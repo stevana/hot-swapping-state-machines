@@ -1,0 +1,55 @@
+cabal-version:      2.4
+name:               hot-swapping-state-machines
+version:            0.1.0.0
+
+-- A short (one-line) description of the package.
+-- synopsis:
+
+-- A longer description of the package.
+-- description:
+
+-- A URL where users can report bugs.
+-- bug-reports:
+license:            BSD-2-Clause
+license-file:       LICENSE
+author:             Stevan Andjelkovic
+maintainer:         stevana@users.noreply.github.com
+
+-- A copyright notice.
+-- copyright:
+-- category:
+extra-source-files: CHANGELOG.md
+
+library
+    exposed-modules:  StateMachine, Example.Counter
+
+    -- Modules included in this library but not exported.
+    -- other-modules:
+
+    -- LANGUAGE extensions used by modules in this package.
+    -- other-extensions:
+    build-depends:    base ^>=4.15.1.0
+    hs-source-dirs:   src
+    default-language: Haskell2010
+
+executable hot-swapping-state-machines
+    main-is:          Main.hs
+
+    -- Modules included in this executable, other than Main.
+    -- other-modules:
+
+    -- LANGUAGE extensions used by modules in this package.
+    -- other-extensions:
+    build-depends:
+        base ^>=4.15.1.0,
+        hot-swapping-state-machines
+
+    hs-source-dirs:   app
+    default-language: Haskell2010
+
+test-suite hot-swapping-state-machines-test
+    default-language: Haskell2010
+    type:             exitcode-stdio-1.0
+    hs-source-dirs:   test
+    main-is:          MyLibTest.hs
+    build-depends:    base ^>=4.15.1.0

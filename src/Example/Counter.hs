@@ -32,10 +32,10 @@ counter' = proc (i, s) -> case i of
   Read -> returnA -< (Sum s, s)
 
 counterSM :: FreeFunc Int (Either () ()) (Either () Int)
-counterSM = sm $ \i -> kase i incr read
+counterSM = sm $ kase incr read
   where
-    incr = inl (pmodify (kadd 1) unit)
-    read = inr (pget unit)
+    incr l = inl (pmodify (kadd 1) l)
+    read r = inr (pget r)
 
 t :: FreeFunc s (a, b) (b, a)
 t = sm \(Tup x y) -> Tup y x

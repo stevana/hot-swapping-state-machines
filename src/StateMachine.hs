@@ -26,6 +26,9 @@ data FreeFunc s a b where
   Inl     :: FreeFunc s a (Either a b)
   Inr     :: FreeFunc s b (Either a b)
   Case    :: FreeFunc s a c -> FreeFunc s b c -> FreeFunc s (Either a b) c
+  Distr   :: FreeFunc s (Either a b, c) (Either (a, c) (b, c))
+  App     :: FreeFunc s (a -> b, a) b
+  Curry   :: FreeFunc s (a, b) c -> FreeFunc s a (b -> c)
   Embed   :: (a -> b) -> FreeFunc s a b
   Get     :: FreeFunc s () s
   Put     :: FreeFunc s s ()
@@ -77,6 +80,7 @@ instance Arrow (FreeFunc s) where
   f &&& g  = Par f g `Compose` Copy
 
 instance ArrowChoice (FreeFunc s) where
+  (+++) :: FreeFunc s a c -> FreeFunc s b d -> FreeFunc s (Either a b) (Either c d)
   f +++ g = Case (Inl `Compose` f) (Inr `Compose` g)
   (|||)   = Case
   left  f = Case (Inl `Compose` f) Inr
@@ -129,6 +133,9 @@ eval1 f i s = case f of
   Case f g -> case i of
     Left  l -> eval1 f l s
     Right r -> eval1 g r s
+  Distr -> case i of
+    (Left  x, z) -> (s, Left  (x, z))
+    (Right y, z) -> (s, Right (y, z))
   Embed f -> (s, f i)
   Get -> (s, s)
   Put -> (i, ())
@@ -205,8 +212,11 @@ inl = encode Inl
 inr :: Port s r b -> Port s r (Either a b)
 inr = encode Inr
 
-kase :: Port s r (Either a b) -> Port s a c -> Port s b c -> Port s r c
-kase (P x) (P f) (P g) = P (Case f g `Compose` x)
+pdistr ::  Port s r (Either a b, c) -> Port s r (Either (a, c) (b, c))
+pdistr = encode Distr
+
+kase :: (Port s r a -> Port s r c) -> (Port s r b -> Port s r c) -> Port s r (Either a b) -> Port s r c
+kase f g e = undefined
 
 pleft :: Port s x y -> Port s (Either x z) (Either y z)
 pleft (P f) = P (left f)

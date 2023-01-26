@@ -1,8 +1,9 @@
+{-# LANGUAGE GADTs #-}
+{-# LANGUAGE InstanceSigs #-}
+{-# LANGUAGE PatternSynonyms #-}
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE StandaloneDeriving #-}
 {-# LANGUAGE ViewPatterns #-}
-{-# LANGUAGE PatternSynonyms #-}
-{-# LANGUAGE GADTs #-}
 
 module StateMachine where
 
@@ -28,6 +29,8 @@ data FreeFunc s a b where
   Embed   :: (a -> b) -> FreeFunc s a b
   Get     :: FreeFunc s () s
   Put     :: FreeFunc s s ()
+  Const   :: (Num a, Show a) => a -> FreeFunc s b a
+  Add     :: Num a => FreeFunc s (a, a) a
 
 instance Show (FreeFunc s a b) where
   showsPrec d Id = showString "Id"
@@ -52,7 +55,14 @@ instance Show (FreeFunc s a b) where
       . showsPrec 11 f
       . showString " "
       . showsPrec 11 g
-  showsPrec d (Embed _) = showString "Embed _"
+  showsPrec d (Embed _) = showParen (d > 10) $
+    showString "Embed _"
+  showsPrec d Get = showString "Get"
+  showsPrec d Put = showString "Put"
+  showsPrec d (Const k) = showParen (d > 10) $
+    showString "Const "
+      . showsPrec 11 k
+  showsPrec d Add = showString "Add"
 
 instance Category (FreeFunc s) where
   id  = Id
@@ -63,6 +73,7 @@ instance Arrow (FreeFunc s) where
   first  f = Par f Id
   second g = Par Id g
   (***)    = Par
+  (&&&) :: FreeFunc s a b -> FreeFunc s a c -> FreeFunc s a (b, c)
   f &&& g  = Par f g `Compose` Copy
 
 instance ArrowChoice (FreeFunc s) where
@@ -97,6 +108,42 @@ get = SM (\_i s -> (s, s))
 
 put :: SM s s ()
 put = SM (\s' _s -> (s', ()))
+
+------------------------------------------------------------------------
+
+eval1 :: FreeFunc s i o -> (i -> s -> (s, o))
+eval1 f i s = case f of
+  Id -> (s, i)
+  Compose g f -> let (s', o) = eval1 f i s in eval1 g o s'
+  Copy -> (s, (i, i))
+  Consume -> (s, ())
+  Par f g -> let
+                 (s',  o)  = eval1 f (fst i) s
+                 (s'', o') = eval1 g (snd i) s'
+             in
+               (s'', (o, o'))
+  Fst -> (s, fst i)
+  Snd -> (s, snd i)
+  Inl -> (s, Left i)
+  Inr -> (s, Right i)
+  Case f g -> case i of
+    Left  l -> eval1 f l s
+    Right r -> eval1 g r s
+  Embed f -> (s, f i)
+  Get -> (s, s)
+  Put -> (i, ())
+  Const k -> (s, k)
+  Add -> (s, uncurry (+) i)
+
+eval :: FreeFunc s i o -> [i] -> s -> (s, [o])
+eval f = go []
+  where
+    go acc []       s = (s, reverse acc)
+    go acc (i : is) s =
+      let
+        (s', o) = eval1 f i s
+      in
+        go (o : acc) is s'
 
 ------------------------------------------------------------------------
 
@@ -137,8 +184,8 @@ void = encode Consume
 box :: (a -> b) -> Port s r a -> Port s r b
 box f = encode (Embed f)
 
-konst :: a -> Port s r b -> Port s r a
-konst x = box (\_ -> x)
+konst :: (Num a, Show a) => a -> Port s r () -> Port s r a
+konst x = encode (Const x)
 
 pget :: Port s r () -> Port s r s
 pget = encode Get
@@ -146,14 +193,23 @@ pget = encode Get
 pput :: Port s r s -> Port s r ()
 pput = encode Put
 
+pmodify :: FreeFunc s s s -> Port s r () -> Port s r ()
+pmodify f = encode (Get >>> f >>> Put)
+
+kadd :: Int -> FreeFunc s Int Int
+kadd k = (Const k &&& Id) >>> Add
+
 inl :: Port s r a -> Port s r (Either a b)
 inl = encode Inl
 
 inr :: Port s r b -> Port s r (Either a b)
 inr = encode Inr
 
-kase :: Port s a c -> Port s b c -> Port s (Either a b) c
-kase (P x) (P y) = P (x ||| y)
+kase :: Port s r (Either a b) -> Port s a c -> Port s b c -> Port s r c
+kase (P x) (P f) (P g) = P (Case f g `Compose` x)
+
+pleft :: Port s x y -> Port s (Either x z) (Either y z)
+pleft (P f) = P (left f)
 
 (>>) :: Port s r a -> Port s r b -> Port s r b
 x >> y = psnd (pair x y)

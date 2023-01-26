@@ -31,11 +31,11 @@ counter' = proc (i, s) -> case i of
   Incr -> returnA -< (Ok, s + 1)
   Read -> returnA -< (Sum s, s)
 
-counterSM :: FreeFunc Int (Either () ()) Response
-counterSM = undefined
-  -- case i of
-  --   Incr -> return (Ok, s + 1)
-  --   Get  -> return (pair (Sum s) s)
+counterSM :: FreeFunc Int (Either () ()) (Either () Int)
+counterSM = sm $ \i -> kase i incr read
+  where
+    incr = inl (pmodify (kadd 1) unit)
+    read = inr (pget unit)
 
 t :: FreeFunc s (a, b) (b, a)
 t = sm \(Tup x y) -> Tup y x

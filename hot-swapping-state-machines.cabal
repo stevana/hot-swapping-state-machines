@@ -21,35 +21,49 @@ maintainer:         stevana@users.noreply.github.com
 extra-source-files: CHANGELOG.md
 
 library
-    exposed-modules:  StateMachine, Example.Counter
+  exposed-modules:
+    AbstractMachine
+    Code
+    Compiler
+    Correctness
+    Example.Counter
+    Interpreter
+    LibMain
+    StateMachine
+    Syntax
 
-    -- Modules included in this library but not exported.
-    -- other-modules:
+  -- Modules included in this library but not exported.
+  -- other-modules:
 
-    -- LANGUAGE extensions used by modules in this package.
-    -- other-extensions:
-    build-depends:    base ^>=4.15.1.0
-    hs-source-dirs:   src
-    default-language: Haskell2010
+  -- LANGUAGE extensions used by modules in this package.
+  -- other-extensions:
+  build-depends:
+    , base      ^>=4.15.1.0
+    , filepath
+    , unix
 
-executable hot-swapping-state-machines
-    main-is:          Main.hs
+  hs-source-dirs:   src
+  default-language: Haskell2010
+  ghc-options:      -Wall
 
-    -- Modules included in this executable, other than Main.
-    -- other-modules:
+executable exe
+  main-is:          Main.hs
 
-    -- LANGUAGE extensions used by modules in this package.
-    -- other-extensions:
-    build-depends:
-        base ^>=4.15.1.0,
-        hot-swapping-state-machines
+  -- Modules included in this executable, other than Main.
+  -- other-modules:
 
-    hs-source-dirs:   app
-    default-language: Haskell2010
+  -- LANGUAGE extensions used by modules in this package.
+  -- other-extensions:
+  build-depends:
+    , base
+    , hot-swapping-state-machines
 
-test-suite hot-swapping-state-machines-test
-    default-language: Haskell2010
-    type:             exitcode-stdio-1.0
-    hs-source-dirs:   test
-    main-is:          MyLibTest.hs
-    build-depends:    base ^>=4.15.1.0
+  hs-source-dirs:   app
+  default-language: Haskell2010
+
+test-suite test
+  default-language: Haskell2010
+  type:             exitcode-stdio-1.0
+  hs-source-dirs:   test
+  main-is:          MyLibTest.hs
+  build-depends:    base ^>=4.15.1.0

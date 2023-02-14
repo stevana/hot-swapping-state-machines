@@ -1,8 +1,10 @@
 module Main where
 
-import qualified MyLib (someFunc)
+import LibMain
+import Example.Counter
+import StateMachine
+
+------------------------------------------------------------------------
 
 main :: IO ()
-main = do
-  putStrLn "Hello, Haskell!"
-  MyLib.someFunc
+main = libMain (compile counterSM)

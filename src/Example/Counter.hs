@@ -70,3 +70,9 @@ counterSM = sm $ kase incr get
   where
     incr = inl . pmodify (kadd 1)
     get  = inr . pget
+
+counterSM2 :: FreeFunc Int (Either () ()) (Either () Int)
+counterSM2 = sm $ kase incr get
+  where
+    incr = inl . pmodify (kadd 2)
+    get  = inr . pget

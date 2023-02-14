@@ -12,7 +12,43 @@ XXX: example
 
 ## Usage
 
+In one terminal run `cabal run exe` and in another terminal run `cabal repl` and type:
+
+```
+> import LibMain
+> tick
+> cget
+```
+
+This should how the following in the first terminal:
+
+```
+L Unit
+R (Int 1)
+```
+
+Where `L Unit` is the output from `tick` and `R (Int 1)` the output from `cget`.
+
+Next we will upgrade the state machine from the REPL:
+
+```
+> import Compiler
+> import Example.Counter
+> load (compile counterSM2)
+> tick
+> cget
+```
+
+Which will result in the following being printed in the first terminal:
+
+```
+Upgraded!
+L Unit
+R (Int 3)
+```
+
 ## How it works
+
 
 ## See also
 

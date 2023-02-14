@@ -7,7 +7,6 @@ import Control.Exception
 import Text.Read
 import System.IO.Error
 
-import StateMachine
 import Code
 import AbstractMachine
 
@@ -22,7 +21,6 @@ pipePath = "/tmp/freefunc"
 libMain :: Code -> IO ()
 libMain code0 = do
   safeCreateNamedPipe (pipePath <.> "command")
-  safeCreateNamedPipe (pipePath <.> "response")
   withFile (pipePath <.> "command") ReadWriteMode $ \h -> do
     hSetBuffering h LineBuffering
     putStrLn "Waiting for commands..."
@@ -37,18 +35,12 @@ libMain code0 = do
           putStrLn ("Invalid command: " ++ s)
           go h code state
         Just (Load code') -> do
-          respond "Upgraded!"
+          putStrLn "Upgraded!"
           go h code' state
         Just (Do input) -> do
           let (output, _, state', _) = exec (input, code, state, [])
-          respond (show output)
+          putStrLn (show output)
           go h code state'
-
-respond :: String -> IO ()
-respond s =
-  withFile (pipePath <.> "response") WriteMode $ \h -> do
-    hSetBuffering h LineBuffering
-    hPutStrLn h s
 
 tick :: IO ()
 tick = writeFile (pipePath <.> "command") (show (Do (L Unit)) ++ "\n")

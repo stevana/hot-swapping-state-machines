@@ -58,5 +58,5 @@ run f i s = (s', o)
   where
     (o, _, s', _) = exec (i, compile f, s, [])
 
-debug :: FreeFunc s a b -> (Value -> Value -> Config)
-debug f i s = exec (i, compile f, s, [])
+debug :: FreeFunc s a b -> (Value -> Value -> IO Config)
+debug f i s = debugExec (i, compile f, s, [])

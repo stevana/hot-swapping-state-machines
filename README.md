@@ -1,6 +1,7 @@
 # hot-swapping-state-machines
 
-An experiment in implementing remote hot code swapping for state machines.
+An experiment in implementing remote hot code swapping, or dynamic code upgrade,
+for state machines.
 
 ## Background
 
@@ -23,8 +24,11 @@ In one terminal run `cabal run exe` and in another terminal run `cabal repl` and
 This should how the following in the first terminal:
 
 ```
-L Unit
-R (Int 1)
+Output:    L Unit
+New state: Int 1
+
+Output:    R (Int 1)
+New state: Int 1
 ```
 
 Where `L Unit` is the output from `tick` and `R (Int 1)` the output from `cget`.
@@ -32,9 +36,9 @@ Where `L Unit` is the output from `tick` and `R (Int 1)` the output from `cget`.
 Next we will upgrade the state machine from the REPL:
 
 ```
-> import Compiler
 > import Example.Counter
-> load (compile counterSM2)
+> upgrade (Upgrade counterSM counterSM2 upgradeState)
+> tick
 > tick
 > cget
 ```
@@ -42,24 +46,40 @@ Next we will upgrade the state machine from the REPL:
 Which will result in the following being printed in the first terminal:
 
 ```
-Upgraded!
-L Unit
-R (Int 3)
+Upgrade successful!
+
+Output:    L Unit
+New state: Pair (Int 1) (Int 1)
+
+Output:    L Unit
+New state: Pair (Int 1) (Int 2)
+
+Output:    R (Int 2)
+New state: Pair (Int 1) (Int 2)
 ```
 
 ## How it works
 
+XXX:
+
+## Contributing
+
+- [ ] Generate `FreeFunc s a b` so that the correctness can be tested;
+- [ ] Backwards compatibility, i.e. allow old inputs after an upgrade;
+- [ ] Rollback?
+- [ ] Better syntax
+  + [Overloading the lambda abstraction in
+    Haskell](https://acatalepsie.fr/posts/overloading-lambda);
+  + [arrowp-qq](https://hackage.haskell.org/package/arrowp-qq): A preprocessor and
+    quasiquoter for translating arrow notation;
+  + [Overloaded.Categories](https://hackage.haskell.org/package/overloaded-0.3.1/docs/Overloaded-Categories.html)
+    plugin;
+- [ ] Use application and releases for
+      [upgrades](https://kennyballou.com/blog/2016/12/elixir-hot-swapping/index.html),
+      also see how this can be automated using rebar3 over
+      [here](https://lrascao.github.io/automatic-release-upgrades-in-erlang/).
 
 ## See also
-
-* [arrowp-qq](https://hackage.haskell.org/package/arrowp-qq): A preprocessor and
-  quasiquoter for translating arrow notation;
-
-* [Overloaded.Categories](https://hackage.haskell.org/package/overloaded-0.3.1/docs/Overloaded-Categories.html)
-  plugin;
-
-* [Overloading the lambda abstraction in
-  Haskell](https://acatalepsie.fr/posts/overloading-lambda);
 
 * [`essence-of-live-coding`](https://github.com/turion/essence-of-live-coding):
   FRP library with hot code swapping support.

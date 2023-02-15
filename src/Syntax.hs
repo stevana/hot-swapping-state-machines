@@ -65,6 +65,9 @@ pmodify f = encode (Get >>> f >>> Put)
 kadd :: Int -> FreeFunc s Int Int
 kadd k = (Const k &&& Id) >>> Add
 
+padd :: Int -> Port s r Int -> Port s r Int
+padd k = encode (kadd k)
+
 inl :: Port s r a -> Port s r (Either a b)
 inl = encode Inl
 

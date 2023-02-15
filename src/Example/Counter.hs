@@ -1,4 +1,5 @@
 {-# LANGUAGE Arrows #-}
+{-# LANGUAGE QualifiedDo #-}
 
 module Example.Counter where
 
@@ -71,8 +72,13 @@ counterSM = sm $ kase incr get
     incr = inl . pmodify (kadd 1)
     get  = inr . pget
 
-counterSM2 :: FreeFunc Int (Either () ()) (Either () Int)
-counterSM2 = sm $ kase incr get
+counterSM2 :: FreeFunc (Int, Int) (Either () ()) (Either () Int)
+counterSM2 = sm $ kase (inl . incr) (inr . get)
   where
-    incr = inl . pmodify (kadd 2)
-    get  = inr . pget
+    incr l = StateMachine.do
+      let (old, new) = split (pget l)
+      pput (pair old (padd 1 new))
+    get  = psnd . pget
+
+upgradeState :: FreeFunc () Int (Int, Int)
+upgradeState = sm $ \oldState -> pair oldState (konst 0 unit)

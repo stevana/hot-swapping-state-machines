@@ -6,3 +6,6 @@ cabal.project.local*
 .\#*
 *~
 \#*\#
+
+# erlang
+*.beam

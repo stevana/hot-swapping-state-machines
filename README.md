@@ -132,8 +132,8 @@ type:
 
 ```
 > import LibMain
-> tick
-> cget
+> incr
+> count
 ```
 
 This should how the following in the first terminal:
@@ -146,16 +146,16 @@ Output:    R (Int 1)
 New state: Int 1
 ```
 
-Where `L Unit` is the output from `tick` and `R (Int 1)` the output from `cget`.
+Where `L Unit` is the output from `incr` and `R (Int 1)` the output from `count`.
 
 Next we will upgrade the state machine from the REPL:
 
 ```
 > import Example.Counter
 > upgrade (Upgrade counterSM counterSM2 upgradeState)
-> tick
-> tick
-> cget
+> incr
+> incr
+> count
 ```
 
 Which will result in the following being printed in the first terminal:
@@ -195,7 +195,14 @@ is an instance of `Arrow`.
 It's important that it's first-order so that we can serialise it and send it
 over the network.
 
-Example of swap using arrow combinators?
+Example of swap using arrow combinators:
+```
+> import Control.Arrow
+> let copy = id &&& id
+> let swap = copy >>> snd *** fst
+> swap (1, 2)
+(2,1)
+```
 
 Unfortunately Haskell does the wrong thing when translating `Arrow` syntax into
 `Arrow` combinators, using `arr :: Arrow arrow => (a -> b) -> arrow a b` when

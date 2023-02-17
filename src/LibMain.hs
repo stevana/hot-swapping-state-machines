@@ -53,11 +53,11 @@ libMain code0 = do
           putStrLn ("New state: " ++ show state')
           go h code state'
 
-tick :: IO ()
-tick = writeFile (pipePath <.> "command") (show (Do (L Unit)) ++ "\n")
+incr :: IO ()
+incr = writeFile (pipePath <.> "command") (show (Do (L Unit)) ++ "\n")
 
-cget :: IO ()
-cget = writeFile (pipePath <.> "command") (show (Do (R Unit)) ++ "\n")
+count :: IO ()
+count = writeFile (pipePath <.> "command") (show (Do (R Unit)) ++ "\n")
 
 data Upgrade = forall s s' a a' b b'. Upgrade
   { oldSM          :: FreeFunc s a b

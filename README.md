@@ -173,9 +173,55 @@ Output:    R (Int 2)
 New state: Pair (Int 1) (Int 2)
 ```
 
+If we try to upgrade again, we get an error:
+
+```
+The version running isn't the one the upgrade expects. Aborting upgrade.
+```
+
+
 ## How it works
 
-XXX:
+The basic idea is that a state machine of type:
+
+```
+  SM state input output = input -> state -> (state, output)
+```
+
+is an instance of `Arrow`.
+
+`Arrow`s allow us to express functions an a first-order way.
+
+It's important that it's first-order so that we can serialise it and send it
+over the network.
+
+Example of swap using arrow combinators?
+
+Unfortunately Haskell does the wrong thing when translating `Arrow` syntax into
+`Arrow` combinators, using `arr :: Arrow arrow => (a -> b) -> arrow a b` when
+not necessary.
+
+Conal Elliott's work on compiling categories, use Cartesian closed categories
+instead. concat GHC plugin, translates any monomorphic Haskell function into an
+`Arrow` of any user-defined Haskell CCC.
+
+overloaded-categories does the right thing, heavyweight, earlier version used this
+
+current version uses `Port`-trick from Jean-Philippe Bernardy and Arnaud
+Spiwack: Evaluating Linear Functions to Symmetric Monoidal Categories, as nicely
+described by Lucas Escot in: https://acatalepsie.fr/posts/overloading-lambda
+
+Anyway, once the state machine is expressed as an arrow we can get it's free
+function (see Chris Penner's talk) and this can be compiled to the CAM.
+
+Bytecode for CAM can be sent over the network.
+
+each deployed node runs a CAM, when we deploy the node we specify a SM to run there
+
+we can remotely upgrade the SM on the node by sending it CAM bytecode of the old
+SM (this is used to verify that we are not updating the wrong SM), the bytecode
+for the new SM and the bytecode for a state migration (old state to new state).
+the state migration is type-safe.
 
 ## Contributing
 
@@ -193,6 +239,9 @@ XXX:
       [upgrades](https://kennyballou.com/blog/2016/12/elixir-hot-swapping/index.html),
       also see how this can be automated using rebar3 over
       [here](https://lrascao.github.io/automatic-release-upgrades-in-erlang/).
+
+- [ ] Can we implement the abstract machine and event loop using
+      [Cosmopolitan](https://github.com/jart/cosmopolitan) for portability?
 
 ## See also
 

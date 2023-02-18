@@ -311,7 +311,7 @@ ideas:
     inspiration;
   + Or porting the
     [Overloaded.Categories](https://hackage.haskell.org/package/overloaded-0.3.1/docs/Overloaded-Categories.html)
-    bits from Oleg's plugin;
+    bits from Oleg's plugin to newer GHC versions;
   + Or actually fixing GHC, I'm not sure if there's a proposal for this already,
     I think the closest thing I could find is
     [this](https://github.com/ghc-proposals/ghc-proposals/pull/303) (stale) one

@@ -182,53 +182,117 @@ The version running isn't the one the upgrade expects. Aborting upgrade.
 
 ## How it works
 
-The basic idea is that a state machine of type:
+The basic idea is that we want our state machines to be seralisable so that we
+can send them over the network in order to perform remote upgrades.
+
+The key observation is that a state machine of type:
 
 ```
   SM state input output = input -> state -> (state, output)
 ```
 
-is an instance of `Arrow`.
+is an instance of `Arrow` and `Arrow`s allow us to express functions an a
+first-order way, as long as `arr :: Arrow a => (b -> c) -> a b c` is *not* used.
 
-`Arrow`s allow us to express functions an a first-order way.
+The `Arrow` type class modulo `arr` is the `CartesianCategory` type class from
+Conal Elliott's work on [compiling to
+categories](http://conal.net/papers/compiling-to-categories/).
 
-It's important that it's first-order so that we can serialise it and send it
-over the network.
+The `CartesianCategory` type class is defined as follows:
 
-Example of swap using arrow combinators:
+```haskell
+class Category k => Cartesian k where
+  (&&&) :: k a c -> k a d -> k a (c, d)
+  (***) :: k b c -> k b' c' -> k (b, b') (c, c')
+  fst   :: k (a, b) a
+  snd   :: k (a, b) b
 ```
-> import Control.Arrow
-> let copy = id &&& id
-> let swap = copy >>> snd *** fst
-> swap (1, 2)
-(2,1)
+
+The initial (or free) `CartesianCategory` is given by the following data type:
+
+```hasell
+data FreeCC c where
+  Id      :: FreeCC a a
+  Compose :: FreeCC b c -> FreeCC a b -> FreeCC a c
+  (:&&&)  :: FreeCC a c -> FreeCC a d -> FreeCC a (c, d)
+  (:***)  :: FreeCC b c -> FreeCC b' c' -> FreeCC (b, b') (c, c')
+  Fst     :: FreeCC (a, b) a
+  Snd     :: FreeCC (a, b) b
 ```
 
-Unfortunately Haskell does the wrong thing when translating `Arrow` syntax into
-`Arrow` combinators, using `arr :: Arrow arrow => (a -> b) -> arrow a b` when
-not necessary.
+with the, hopefully, obvious `Cartesian` instance.
 
-Conal Elliott's work on compiling categories, use Cartesian closed categories
-instead. concat GHC plugin, translates any monomorphic Haskell function into an
-`Arrow` of any user-defined Haskell CCC.
+So the idea is that we write our program using the `Cartesian`:
 
-overloaded-categories does the right thing, heavyweight, earlier version used this
+```haskell
+swap :: Cartesian k => k (a, b) (b, a)
+swap = copy >>> snd *** fst
+  where
+    copy :: Cartesian k => k a (a, a)
+    copy = id &&& id
+```
 
-current version uses `Port`-trick from Jean-Philippe Bernardy and Arnaud
-Spiwack: Evaluating Linear Functions to Symmetric Monoidal Categories, as nicely
-described by Lucas Escot in: https://acatalepsie.fr/posts/overloading-lambda
+And then we can instantiate `k` to be `FreeCC` and get ahold of the serialisable
+syntax.
 
-Anyway, once the state machine is expressed as an arrow we can get it's free
-function (see Chris Penner's talk) and this can be compiled to the CAM.
+Ideally, since writing larger programs in this point-free style is tricky, we'd
+like to the arrow syntax:
 
-Bytecode for CAM can be sent over the network.
+```haskell
+swap' :: Cartesian k => k (a, b) (b, a)
+swap' = proc (x, y) -> returnA -< (y, x)
+```
 
-each deployed node runs a CAM, when we deploy the node we specify a SM to run there
+After all `Cartesian` is merely `Arrow` without `arr` and we've shown how `swap`
+can be implemented without `arr`, but alas GHC nevertheless tries to translate
+`swap'` into something that uses `arr` which ruins our plan.
 
-we can remotely upgrade the SM on the node by sending it CAM bytecode of the old
-SM (this is used to verify that we are not updating the wrong SM), the bytecode
-for the new SM and the bytecode for a state migration (old state to new state).
-the state migration is type-safe.
+Conal developed the `concat` GHC plugin to avoid this problem. It translates any
+monomorphic Haskell function into an `Arrow` of any user-defined Haskell
+Cartesian closed category (CCC)[^1].
+
+Oleg Grenrus also developed another GHC
+[plugin](https://github.com/phadej/overloaded/blob/master/src/Overloaded/Categories.hs)
+that does the right thing and translates arrow syntax into `CartesianCategory`
+rather than `Arrow` which also solves the problem.
+
+Since both of these approaches rely on the GHC plugin machinery they are quite
+heavyweight.
+
+Conal's translation works for any monomorphic function, so in a sense it solves
+a more general problem than we need.
+
+Oleg's library is also solving a bunch of other problems that we don't care
+about, it implements OverloadedStrings, OverloadedLists, OverloadedLabels using
+the plugin, and more importantly it doesn't compile with GHC 9.2 or above.
+
+More recently Lucas Escot
+[showed](https://acatalepsie.fr/posts/overloading-lambda) how to use ideas from
+Jean-Philippe Bernardy and Arnaud Spiwack's
+[paper](https://arxiv.org/abs/2103.06195) *Evaluating Linear Functions to
+Symmetric Monoidal Categories* (2021) to provide a small DSL which gives us
+something close to the arrow syntax.
+
+It's also not quite perfect, in particular higher-order combinators cannot be
+expressed, but Lucas tells me that he's working on a follow up post which
+tackles this problem.
+
+Anyway, we use the trick that Lucas described to express our state machines and
+from that we something similar to the free Cartesian category (`FreeCC` above),
+which we then compile to the [Categorical abstract
+machine](https://en.wikipedia.org/wiki/Categorical_abstract_machine) (CAM).
+
+This compilation process is rather straight-forward as CAM is similar to `FreeCC`.
+
+The CAM "bytecode" is our serialised state machine and this is what gets sent
+over the network when doing upgrades.
+
+The idea is that each deployed node runs a CAM, when we deploy the node we
+specify a initial state machine to run there and then we can remotely upgrade
+the state machine on the node by sending it CAM bytecode of the old SM (this is
+used to verify that we are not updating the wrong SM), the bytecode for the new
+SM and the bytecode for a state migration (old state to new state). the state
+migration is type-safe.
 
 ## Contributing
 
@@ -242,6 +306,7 @@ the state migration is type-safe.
     quasiquoter for translating arrow notation;
   + [Overloaded.Categories](https://hackage.haskell.org/package/overloaded-0.3.1/docs/Overloaded-Categories.html)
     plugin;
+  + https://github.com/ghc-proposals/ghc-proposals/pull/303 ?
 - [ ] Use application and releases for
       [upgrades](https://kennyballou.com/blog/2016/12/elixir-hot-swapping/index.html),
       also see how this can be automated using rebar3 over
@@ -254,8 +319,15 @@ the state migration is type-safe.
 
 * [`essence-of-live-coding`](https://github.com/turion/essence-of-live-coding):
   FRP library with hot code swapping support.
+* Dan Piponi's `circuit`s are similar to our state machines:
+   - http://blog.sigfpe.com/2017/01/addressing-pieces-of-state-with.html
+   -  http://blog.sigfpe.com/2017/01/building-free-arrows-from-components.html
 
 ## Acknowledgment
 
 Thanks to Daniel Gustafsson for helping me understand `Port` from the
 *Overloading the lambda abstraction in Haskell* post!
+
+
+[^1]: The closed part of Cartesian *closed* category means that we also add
+    exponents (not just finite products), i.e. analogous to `ArrowApply`.

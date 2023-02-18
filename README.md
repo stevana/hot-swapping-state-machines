@@ -281,7 +281,9 @@ to the free Cartesian category (`FreeCC` above), which we then compile to the
 [Categorical abstract
 machine](https://en.wikipedia.org/wiki/Categorical_abstract_machine) (CAM). This
 [compilation](https://github.com/stevana/hot-swapping-state-machines/blob/main/src/Compiler.hs)
-process is rather straight-forward as CAM is similar to `FreeCC`. The CAM
+process is rather straight-forward as
+[CAM](https://github.com/stevana/hot-swapping-state-machines/blob/main/src/AbstractMachine.hs)
+is similar to `FreeCC`. The CAM
 ["bytecode"](https://github.com/stevana/hot-swapping-state-machines/blob/main/src/Code.hs)
 is our serialised state machine and this is what gets sent over the network when
 doing upgrades.

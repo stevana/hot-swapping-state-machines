@@ -271,8 +271,11 @@ something close to the arrow syntax. It's also not quite perfect, in particular
 higher-order combinators cannot be expressed, but Lucas tells me that he's
 working on a follow up post which tackles this problem.
 
-Anyway, we use the trick that Lucas described to express our state machines and
-from that we something
+Anyway, we use the
+[trick](https://github.com/stevana/hot-swapping-state-machines/blob/main/src/Syntax.hs)
+that Lucas described to express our [state
+machines](https://github.com/stevana/hot-swapping-state-machines/blob/3e0a0cf8f605cfd8edd60aef1ebe6fb002bbea3e/src/Example/Counter.hs#L6)
+and from that we something
 [similar](https://github.com/stevana/hot-swapping-state-machines/blob/main/src/StateMachine.hs)
 to the free Cartesian category (`FreeCC` above), which we then compile to the
 [Categorical abstract

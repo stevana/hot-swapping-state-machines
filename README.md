@@ -179,7 +179,6 @@ If we try to upgrade again, we get an error:
 The version running isn't the one the upgrade expects. Aborting upgrade.
 ```
 
-
 ## How it works
 
 The basic idea is that we want our state machines to be seralisable so that we
@@ -257,48 +256,49 @@ that does the right thing and translates arrow syntax into `CartesianCategory`
 rather than `Arrow` which also solves the problem.
 
 Since both of these approaches rely on the GHC plugin machinery they are quite
-heavyweight.
-
-Conal's translation works for any monomorphic function, so in a sense it solves
-a more general problem than we need.
-
-Oleg's library is also solving a bunch of other problems that we don't care
-about, it implements OverloadedStrings, OverloadedLists, OverloadedLabels using
-the plugin, and more importantly it doesn't compile with GHC 9.2 or above.
+heavyweight. Conal's translation works for any monomorphic function, so in a
+sense it solves a more general problem than we need. Oleg's library is also
+solving a bunch of other problems that we don't care about, it implements
+OverloadedStrings, OverloadedLists, OverloadedLabels using the plugin, and more
+importantly it doesn't compile with GHC 9.2 or above.
 
 More recently Lucas Escot
 [showed](https://acatalepsie.fr/posts/overloading-lambda) how to use ideas from
 Jean-Philippe Bernardy and Arnaud Spiwack's
 [paper](https://arxiv.org/abs/2103.06195) *Evaluating Linear Functions to
 Symmetric Monoidal Categories* (2021) to provide a small DSL which gives us
-something close to the arrow syntax.
-
-It's also not quite perfect, in particular higher-order combinators cannot be
-expressed, but Lucas tells me that he's working on a follow up post which
-tackles this problem.
+something close to the arrow syntax. It's also not quite perfect, in particular
+higher-order combinators cannot be expressed, but Lucas tells me that he's
+working on a follow up post which tackles this problem.
 
 Anyway, we use the trick that Lucas described to express our state machines and
-from that we something similar to the free Cartesian category (`FreeCC` above),
-which we then compile to the [Categorical abstract
-machine](https://en.wikipedia.org/wiki/Categorical_abstract_machine) (CAM).
+from that we something
+[similar](https://github.com/stevana/hot-swapping-state-machines/blob/main/src/StateMachine.hs)
+to the free Cartesian category (`FreeCC` above), which we then compile to the
+[Categorical abstract
+machine](https://en.wikipedia.org/wiki/Categorical_abstract_machine) (CAM). This
+[compilation](https://github.com/stevana/hot-swapping-state-machines/blob/main/src/Compiler.hs)
+process is rather straight-forward as CAM is similar to `FreeCC`. The CAM
+["bytecode"](https://github.com/stevana/hot-swapping-state-machines/blob/main/src/Code.hs)
+is our serialised state machine and this is what gets sent over the network when
+doing upgrades.
 
-This compilation process is rather straight-forward as CAM is similar to `FreeCC`.
-
-The CAM "bytecode" is our serialised state machine and this is what gets sent
-over the network when doing upgrades.
-
-The idea is that each deployed node runs a CAM, when we deploy the node we
-specify a initial state machine to run there and then we can remotely upgrade
-the state machine on the node by sending it CAM bytecode of the old SM (this is
-used to verify that we are not updating the wrong SM), the bytecode for the new
-SM and the bytecode for a state migration (old state to new state). the state
-migration is type-safe.
+The idea is that each deployed node runs a CAM, when we
+[deploy](https://github.com/stevana/hot-swapping-state-machines/blob/3f7c4081d84a6ca3eeafbe892ca0798b96f61645/src/LibMain.hs#L25)
+the node we specify a initial state machine (SM) to run there. We then remotely
+upgrade the state machine on a node by sending it CAM bytecode of the old SM
+(this is used to verify that we are not updating the wrong SM), the bytecode for
+the new SM and the bytecode for a state migration (old state to new state). The
+state migration is
+[type-safe](https://github.com/stevana/hot-swapping-state-machines/blob/3f7c4081d84a6ca3eeafbe892ca0798b96f61645/src/LibMain.hs#L65).
 
 ## Contributing
 
-- [ ] Generate `FreeFunc s a b` so that the correctness can be tested;
+- [ ] Generate `FreeFunc s a b` so that the
+      [correctness](https://github.com/stevana/hot-swapping-state-machines/blob/main/src/Correctness.hs)
+      can be tested;
 - [ ] Backwards compatibility, i.e. allow old inputs after an upgrade;
-- [ ] Rollback?
+- [ ] Downgrades and rollback in case upgrades fail?
 - [ ] Better syntax
   + [Overloading the lambda abstraction in
     Haskell](https://acatalepsie.fr/posts/overloading-lambda);
@@ -320,8 +320,10 @@ migration is type-safe.
 * [`essence-of-live-coding`](https://github.com/turion/essence-of-live-coding):
   FRP library with hot code swapping support.
 * Dan Piponi's `circuit`s are similar to our state machines:
-   - http://blog.sigfpe.com/2017/01/addressing-pieces-of-state-with.html
-   -  http://blog.sigfpe.com/2017/01/building-free-arrows-from-components.html
+   - http://blog.sigfpe.com/2017/01/addressing-pieces-of-state-with.html;
+   - http://blog.sigfpe.com/2017/01/building-free-arrows-from-components.html.
+* Chris Penner's *Deconstructing Lambdas*
+  [talk](https://youtube.com/watch?v=xZmPuz9m2t0) (2021).
 
 ## Acknowledgment
 

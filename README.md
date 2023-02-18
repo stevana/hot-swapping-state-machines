@@ -294,24 +294,36 @@ state migration is
 
 ## Contributing
 
+I believe this is a good starting point for further experiments, here are a few
+ideas:
+
 - [ ] Generate `FreeFunc s a b` so that the
       [correctness](https://github.com/stevana/hot-swapping-state-machines/blob/main/src/Correctness.hs)
       can be tested;
 - [ ] Backwards compatibility, i.e. allow old inputs after an upgrade;
-- [ ] Downgrades and rollback in case upgrades fail?
-- [ ] Better syntax
-  + [Overloading the lambda abstraction in
-    Haskell](https://acatalepsie.fr/posts/overloading-lambda);
-  + [arrowp-qq](https://hackage.haskell.org/package/arrowp-qq): A preprocessor and
-    quasiquoter for translating arrow notation;
-  + [Overloaded.Categories](https://hackage.haskell.org/package/overloaded-0.3.1/docs/Overloaded-Categories.html)
-    plugin;
-  + https://github.com/ghc-proposals/ghc-proposals/pull/303 ?
-- [ ] Use application and releases for
-      [upgrades](https://kennyballou.com/blog/2016/12/elixir-hot-swapping/index.html),
-      also see how this can be automated using rebar3 over
+- [ ] Downgrades and rollback in case upgrades fail;
+- [ ] Improve the DSL for writing state machines:
+  + Either building upon the current approach described in [*Overloading the
+    lambda abstraction in
+    Haskell*](https://acatalepsie.fr/posts/overloading-lambda) by Lucas;
+  + Or perhaps using a custom preprocessor and quasiquoter for arrows, see Pepe
+    Iborra's [arrowp-qq](https://hackage.haskell.org/package/arrowp-qq) for
+    inspiration;
+  + Or porting the
+    [Overloaded.Categories](https://hackage.haskell.org/package/overloaded-0.3.1/docs/Overloaded-Categories.html)
+    bits from Oleg's plugin;
+  + Or actually fixing GHC, I'm not sure if there's a proposal for this already,
+    I think the closest thing I could find is
+    [this](https://github.com/ghc-proposals/ghc-proposals/pull/303) (stale) one
+    by Alexis King.
+- [ ] In Erlang upgrades are usually not done directly on `gen_server` but
+      rather via the `application` and `release`s behaviours. In short one
+      `application` is a supervisor tree and a `release` is one or more
+      `application`s. For more see [appup and
+      relups](https://kennyballou.com/blog/2016/12/elixir-hot-swapping/index.html),
+      as well as how this can be automated using rebar3 over
       [here](https://lrascao.github.io/automatic-release-upgrades-in-erlang/).
-
+      What would porting that over to our setting look like?
 - [ ] Can we implement the abstract machine and event loop using
       [Cosmopolitan](https://github.com/jart/cosmopolitan) for portability?
 
@@ -325,11 +337,12 @@ state migration is
 * Chris Penner's *Deconstructing Lambdas*
   [talk](https://youtube.com/watch?v=xZmPuz9m2t0) (2021).
 
-## Acknowledgment
+## Acknowledgments
 
 Thanks to Daniel Gustafsson for helping me understand `Port` from the
-*Overloading the lambda abstraction in Haskell* post!
+*Overloading the lambda abstraction in Haskell* blog post!
 
 
 [^1]: The closed part of Cartesian *closed* category means that we also add
-    exponents (not just finite products), i.e. analogous to `ArrowApply`.
+    exponents (not just finite products), i.e. analogous to
+    [`ArrowApply`(https://hackage.haskell.org/package/base-4.17.0.0/docs/Control-Arrow.html#t:ArrowApply).

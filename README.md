@@ -187,8 +187,8 @@ can send them over the network in order to perform remote upgrades.
 
 The key observation is that a state machine of type:
 
-```
-  SM state input output = input -> state -> (state, output)
+```haskell
+  type SM state input output = input -> state -> (state, output)
 ```
 
 is an instance of `Arrow` and `Arrow`s allow us to express functions an a

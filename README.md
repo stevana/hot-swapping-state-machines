@@ -329,6 +329,10 @@ ideas:
       as well as how this can be automated using rebar3 over
       [here](https://lrascao.github.io/automatic-release-upgrades-in-erlang/).
       What would porting that over to our setting look like?
+- [ ] Would anything need to be changed if we tried to combine the arrow based
+      state machines with
+      [supervisors](https://github.com/stevana/supervised-state-machines) or
+      [async I/O](https://github.com/stevana/coroutine-state-machines)?
 - [ ] Can we implement the abstract machine and event loop using
       [Cosmopolitan](https://github.com/jart/cosmopolitan) for portability?
 

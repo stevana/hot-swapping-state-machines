@@ -78,6 +78,12 @@ kase :: (forall q. Port s q a -> Port s q c) -> (forall q. Port s q b -> Port s 
      -> Port s r (Either a b) -> Port s r c
 kase f g = encode (Case (decode f) (decode g))
 
+-- This variant would allow us to reuse more variables, but it cannot be
+-- implemented.
+kase' :: (Port s r a -> Port s r c) -> (Port s r b -> Port s r c)
+      -> Port s r (Either a b) -> Port s r c
+kase' f g = error "Cannot be implemented"
+
 pleft :: Port s x y -> Port s (Either x z) (Either y z)
 pleft (P f) = P (left f)
 

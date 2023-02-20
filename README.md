@@ -8,7 +8,7 @@ for state machines.
 In Erlang it's possible to seamlessly hot swap the code on a running process.
 
 Consider the following `gen_server` implementation of a counter which can be
-`incr`emented and the current `count` value retrieved:
+`incr`emented and have its current `count` value retrieved:
 
 ```erlang
 -module(counter).
@@ -61,10 +61,9 @@ ok
 ```
 
 Now lets introduce a contrived change to the counter where we change the state
-to contain two counters, the two operations `incr` and `count` will operate on
-the second counter and the first counter will be the old counter that was there
-before we introduced this change. The state migration, in `code_change`, will
-use the value of the old counter for the new counter.
+to contain an additional counter, which starts at the value of the old one (see
+`code_change`). The two operations `incr` and `count` are changed to operate on
+the new counter leaving the old one alone.
 
 ```diff
 @@ -1,5 +1,5 @@
@@ -122,10 +121,13 @@ ok
 4
 ```
 
-This repo is an experiment which tries to do something similar in Haskell for
-state machines of type `input -> state -> (state, output)`.
+This repository is an experiment which tries to do something similar in Haskell
+for state machines of type `input -> state -> (state, output)`.
 
 ## Usage
+
+Before we go into the details of how this is implemented in Haskell, lets have a
+look at how it looks from the user's perspective.
 
 In one terminal run `cabal run exe` and in another terminal run `cabal repl` and
 type:
@@ -269,13 +271,16 @@ Jean-Philippe Bernardy and Arnaud Spiwack's
 Symmetric Monoidal Categories* (2021) to provide a small DSL which gives us
 something close to the arrow syntax. It's also not quite perfect, in particular
 higher-order combinators cannot be expressed, but Lucas tells me that he's
-working on a follow up post which tackles this problem.
+working on a follow up post which tackles this problem. As we've seen in the
+above example, we also need to encode the state machine's inputs and outputs as
+explicit `Either`s, it might be possible to get around this with some
+generically derived isomorphism though.
 
 Anyway, we use the
 [trick](https://github.com/stevana/hot-swapping-state-machines/blob/main/src/Syntax.hs)
 that Lucas described to express our [state
 machines](https://github.com/stevana/hot-swapping-state-machines/blob/3e0a0cf8f605cfd8edd60aef1ebe6fb002bbea3e/src/Example/Counter.hs#L6)
-and from that we something
+and from that we get something
 [similar](https://github.com/stevana/hot-swapping-state-machines/blob/main/src/StateMachine.hs)
 to the free Cartesian category (`FreeCC` above), which we then compile to the
 [Categorical abstract
@@ -288,7 +293,8 @@ is similar to `FreeCC`. The CAM
 is our serialised state machine and this is what gets sent over the network when
 doing upgrades.
 
-The idea is that each deployed node runs a CAM, when we
+The idea is that each deployed node runs a CAM (or some other abstract machine),
+when we
 [deploy](https://github.com/stevana/hot-swapping-state-machines/blob/3f7c4081d84a6ca3eeafbe892ca0798b96f61645/src/LibMain.hs#L25)
 the node we specify a initial state machine (SM) to run there. We then remotely
 upgrade the state machine on a node by sending it CAM bytecode of the old SM
@@ -296,6 +302,13 @@ upgrade the state machine on a node by sending it CAM bytecode of the old SM
 the new SM and the bytecode for a state migration (old state to new state). The
 state migration is
 [type-safe](https://github.com/stevana/hot-swapping-state-machines/blob/3f7c4081d84a6ca3eeafbe892ca0798b96f61645/src/LibMain.hs#L65).
+
+We could also serialise the free Cartesian category and send that over the
+network, but the bytecode is "flatter" (i.e. can more easily be turned into a
+list of bytecodes) and hopefully a more stable API. I can imagine situations
+where the syntax for writing state machines changes or gets more expressive, but
+the bytecode stays the same. Which is a good thing, since upgrading the abstract
+machine on a node can probably not be done as easily without any downtime.
 
 ## Contributing
 
@@ -311,9 +324,9 @@ ideas:
   + Either building upon the current approach described in [*Overloading the
     lambda abstraction in
     Haskell*](https://acatalepsie.fr/posts/overloading-lambda) by Lucas;
-  + Or perhaps using a custom preprocessor and quasiquoter for arrows, see Pepe
-    Iborra's [arrowp-qq](https://hackage.haskell.org/package/arrowp-qq) for
-    inspiration;
+  + Or perhaps using a custom preprocessor and quasiquoter for Cartesian
+    (closed) categories, see Pepe Iborra's
+    [arrowp-qq](https://hackage.haskell.org/package/arrowp-qq) for inspiration;
   + Or porting the
     [Overloaded.Categories](https://hackage.haskell.org/package/overloaded-0.3.1/docs/Overloaded-Categories.html)
     bits from Oleg's plugin to newer GHC versions;
@@ -329,12 +342,20 @@ ideas:
       as well as how this can be automated using rebar3 over
       [here](https://lrascao.github.io/automatic-release-upgrades-in-erlang/).
       What would porting that over to our setting look like?
+- [ ] How does Erlang handle upgrade of the VM without downtime?
 - [ ] Would anything need to be changed if we tried to combine the arrow based
       state machines with
       [supervisors](https://github.com/stevana/supervised-state-machines) or
       [async I/O](https://github.com/stevana/coroutine-state-machines)?
 - [ ] Can we implement the abstract machine and event loop using
-      [Cosmopolitan](https://github.com/jart/cosmopolitan) for portability?
+      [Cosmopolitan](https://github.com/jart/cosmopolitan) or WebAssembly for
+      portability?
+- [ ] Imagine if we wanted to develop state machines in an other programming
+      language but still target the CAM. Most programming languages don't have
+      GADTs so type-safe the free Cartesian category will not be possible to
+      implement, further more even if we could there's the problem of working
+      with combinators vs arrow syntax... Is there a more low-tech solution that
+      would be easier to port to less featureful languages?
 
 ## See also
 
@@ -354,4 +375,4 @@ Thanks to Daniel Gustafsson for helping me understand `Port` from the
 
 [^1]: The closed part of Cartesian *closed* category means that we also add
     exponents (not just finite products), i.e. analogous to
-    [`ArrowApply`(https://hackage.haskell.org/package/base-4.17.0.0/docs/Control-Arrow.html#t:ArrowApply).
+    [`ArrowApply`](https://hackage.haskell.org/package/base-4.17.0.0/docs/Control-Arrow.html#t:ArrowApply).

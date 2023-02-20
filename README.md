@@ -317,7 +317,7 @@ ideas:
 
 - [ ] Generate `FreeFunc s a b` so that the
       [correctness](https://github.com/stevana/hot-swapping-state-machines/blob/main/src/Correctness.hs)
-      can be tested;
+      can be tested using property-based testing;
 - [ ] Backwards compatibility, i.e. allow old inputs after an upgrade;
 - [ ] Downgrades and rollback in case upgrades fail;
 - [ ] Improve the DSL for writing state machines:

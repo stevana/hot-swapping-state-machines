@@ -358,7 +358,7 @@ ideas:
 - [ ] Imagine if we wanted to develop state machines in an other programming
       language but still target the CAM. Most programming languages don't have
       GADTs so type-safe the free Cartesian category will not be possible to
-      implement, further more even if we could there's the problem of working
+      implement, furthermore even if we could there's the problem of working
       with combinators vs arrow syntax... Is there a more low-tech solution that
       would be easier to port to less featureful languages?
 

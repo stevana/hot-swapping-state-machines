@@ -237,7 +237,7 @@ And then we can instantiate `k` to be `FreeCC` and get ahold of the serialisable
 syntax.
 
 Ideally, since writing larger programs in this point-free style is tricky, we'd
-like to the arrow syntax:
+like to use Haskell's arrow syntax:
 
 ```haskell
 swap' :: Cartesian k => k (a, b) (b, a)

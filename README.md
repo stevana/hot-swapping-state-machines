@@ -365,7 +365,10 @@ ideas:
    - http://blog.sigfpe.com/2017/01/addressing-pieces-of-state-with.html;
    - http://blog.sigfpe.com/2017/01/building-free-arrows-from-components.html.
 * Chris Penner's *Deconstructing Lambdas*
-  [talk](https://youtube.com/watch?v=xZmPuz9m2t0) (2021).
+  [talk](https://youtube.com/watch?v=xZmPuz9m2t0) (2021);
+* The *Dynamic code change* chapter (p. 72) in Joe Armstrong's PhD
+  [thesis](http://kth.diva-portal.org/smash/record.jsf?pid=diva2%3A9492&dswid=2250)
+  (2003).
 
 ## Acknowledgments
 

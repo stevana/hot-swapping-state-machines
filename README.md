@@ -212,7 +212,7 @@ class Category k => Cartesian k where
 The initial (or free) `CartesianCategory` is given by the following data type:
 
 ```haskell
-data FreeCC c where
+data FreeCC a b where
   Id      :: FreeCC a a
   Compose :: FreeCC b c -> FreeCC a b -> FreeCC a c
   (:&&&)  :: FreeCC a c -> FreeCC a d -> FreeCC a (c, d)

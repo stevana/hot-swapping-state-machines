@@ -347,7 +347,7 @@ ideas:
       as well as how this can be automated using rebar3 over
       [here](https://lrascao.github.io/automatic-release-upgrades-in-erlang/).
       What would porting that over to our setting look like?
-- [ ] How does Erlang handle upgrade of the VM without downtime?
+- [ ] How does Erlang handle upgrades of the VM without downtime?
 - [ ] Would anything need to be changed if we tried to combine the arrow based
       state machines with
       [supervisors](https://github.com/stevana/supervised-state-machines) or

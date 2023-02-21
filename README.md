@@ -322,6 +322,8 @@ ideas:
       similar to how state migrations are handled by providing a `FreeFunc ()
       oldInput newInput` as part of
       [`Upgrade`](https://github.com/stevana/hot-swapping-state-machines/blob/02b84cf590addcb35d9ac524070ac93859e1b035/src/LibMain.hs#L62);
+- [ ] Automatic state migration? C.f.
+      [essence-of-live-coding](https://github.com/turion/essence-of-live-coding#migration);
 - [ ] Downgrades and rollback in case upgrades fail;
 - [ ] Improve the DSL for writing state machines:
   + Either building upon the current approach described in [*Overloading the

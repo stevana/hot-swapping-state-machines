@@ -192,7 +192,7 @@ The key observation is that a state machine of type:
   type SM state input output = input -> state -> (state, output)
 ```
 
-is an instance of `Arrow` and `Arrow`s allow us to express functions an a
+is an instance of `Arrow` and `Arrow`s allow us to express functions in a
 first-order way, as long as `arr :: Arrow a => (b -> c) -> a b c` is *not* used.
 
 The `Arrow` type class modulo `arr` is the `CartesianCategory` type class from

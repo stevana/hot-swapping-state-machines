@@ -138,7 +138,7 @@ type:
 > count
 ```
 
-This should how the following in the first terminal:
+This should show the following in the first terminal:
 
 ```
 Output:    L Unit

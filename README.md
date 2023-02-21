@@ -318,7 +318,10 @@ ideas:
 - [ ] Generate `FreeFunc s a b` so that the
       [correctness](https://github.com/stevana/hot-swapping-state-machines/blob/main/src/Correctness.hs)
       can be tested using property-based testing;
-- [ ] Backwards compatibility, i.e. allow old inputs after an upgrade;
+- [ ] Backwards compatibility, i.e. allow old inputs after an upgrade, perhaps
+      similar to how state migrations are handled by providing a `FreeFunc ()
+      oldInput newInput` as part of
+      [`Upgrade`](https://github.com/stevana/hot-swapping-state-machines/blob/02b84cf590addcb35d9ac524070ac93859e1b035/src/LibMain.hs#L62);
 - [ ] Downgrades and rollback in case upgrades fail;
 - [ ] Improve the DSL for writing state machines:
   + Either building upon the current approach described in [*Overloading the

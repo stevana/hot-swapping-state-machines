@@ -59,9 +59,9 @@ incr = writeFile (pipePath <.> "command") (show (Do (L Unit)) ++ "\n")
 count :: IO ()
 count = writeFile (pipePath <.> "command") (show (Do (R Unit)) ++ "\n")
 
-data Upgrade = forall s s' a a' b b'. Upgrade
-  { oldSM          :: FreeFunc s a b
-  , newSM          :: FreeFunc s' a' b'
+data Upgrade = forall s s' i i' o o'. Upgrade
+  { oldSM          :: FreeFunc s i o
+  , newSM          :: FreeFunc s' i' o'
   , stateMigration :: FreeFunc () s s'
   }
 
